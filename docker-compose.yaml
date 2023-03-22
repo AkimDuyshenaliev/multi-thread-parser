@@ -1,0 +1,11 @@
+version: "3.3"
+services:
+  db:
+    container_name: scraping-service-db
+    image: postgres:14.3-alpine
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
