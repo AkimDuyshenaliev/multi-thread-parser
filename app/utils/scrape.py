@@ -2,6 +2,7 @@ import re
 import csv
 from bs4 import BeautifulSoup
 from app.utils.checkup import check_if_empty
+from app.utils.colors import color_end, color_green, color_red, color_yellow
 
 
 def avito_scraper(soup):
@@ -20,9 +21,9 @@ def avito_scraper(soup):
 
     # Check for errors, if list is empty then proxy needs to change
     if comments_body == []:
-        print('--- --- --- Comments not found, list is empty')
+        print(f'{color_red}Comments not found, list is empty{color_end}')
         return []
-    print('--- --- --- Found comments')
+    print(f'{color_green}Found comments{color_end}')
 
     stars_and_text = []
     search_string = re.compile('Дополнительно[:]?')
@@ -38,7 +39,7 @@ def avito_scraper(soup):
                 text=search_string).next_sibling.contents[0].contents[0].text
             re.sub('[^A-Za-z0-9]+', '', review_text)
             review_text = ' '.join(review_text.split('\n'))
-            print('--- --- --- Found "Дополнительно"')
+            print(f'{color_green}Found "Дополнительно"{color_end}')
         except:
             continue
 
@@ -48,7 +49,7 @@ def avito_scraper(soup):
         stars_count = len(([1 for star in stars
                             if re.search('yellow', star.contents[0]['class'][1])]))
         stars_and_text.append([stars_count, review_text])
-        print('--- --- --- Parsed successfully, returning')
+        print(f'{color_green}Parsed successfully, returning{color_end}')
     return stars_and_text
 
 

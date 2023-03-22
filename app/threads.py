@@ -9,6 +9,7 @@ from app.utils.parse import (
 from app.utils.scrape import write_to_csv
 from seleniumwire import webdriver
 from threading import Thread
+from app.utils.colors import color_end, color_green, color_red, color_yellow
 
 
 class ProxyParsing(Thread):
@@ -34,26 +35,27 @@ class ProxyParsing(Thread):
                 with self.lock:
                     proxy = next(self.proxies)
                 driver.proxy = {'http':'http://%s:%s' % (proxy['ip'], proxy['port'])}
-                print(f'--- --- Selected proxy {driver.proxy}')
+                print(f'Selected proxy {driver.proxy}')
                 proxy_status = True
                
             try:
-                check_ip(driver=driver)
+                # check_ip(driver=driver)
                 if main_page is None:
                     main_page = get_product_main_page(driver=driver, address=self.address)
                 if main_page is False:
                     proxy_status = False
                     continue
+
+                data = get_comments(
+                    driver=driver,
+                    page_num=page_num,
+                    proxy_status=proxy_status,
+                    comments_link=main_page['link'])
             except:
-                print('--- --- Exception, choosing another proxy and trying again\n')
+                print(f'{color_red}Exception, choosing another proxy and trying again{color_end}')
                 proxy_status = False
                 continue
             
-            data = get_comments(
-                driver=driver,
-                page_num=page_num,
-                proxy_status=proxy_status,
-                comments_link=main_page['link'])
 
             if data is False:  # If parser returns False then select another parser and restart
                 proxy_status = False
@@ -61,7 +63,7 @@ class ProxyParsing(Thread):
             if data is True:  # If parser returns True then there is no more comments
                 break
 
-            print('\n--- Data', data, '\n')
+            print(f'Data {data}')
             result = prepare_data(main_page['name'], self.address, data)
             page_num += self.step
 

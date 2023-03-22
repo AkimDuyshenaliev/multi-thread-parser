@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 from app.utils.scrape import avito_scraper
 from seleniumwire import webdriver
+from app.utils.colors import color_end, color_green, color_red, color_yellow
 
 
 # Selenium configurations
@@ -28,7 +29,6 @@ prefs = {'profile.default_content_setting_values': {
 }}
 
 options = Options()
-# options = webdriver.ChromeOptions()
 options.add_argument("--headless=new")
 options.add_argument("disable-infobars")
 options.add_argument("--disable-extensions")
@@ -53,6 +53,7 @@ options.add_argument("user-agent=" + user_agent)
 
 srv = Service(ChromeDriverManager().install())
 
+
 def get_driver_requests(driver_requests, url):
     # Access requests via the `requests` attribute
     for request in driver_requests:
@@ -68,10 +69,10 @@ def check_ip(driver):
     soup = BeautifulSoup(ip_page, 'html.parser')
     try:
         my_ip = soup.find('h4', attrs={'class': 'ip-address'}).text
-        print(f'--- My ip:          {my_ip.strip()}\n')
+        print(f'{color_green}My ip: {my_ip.strip()}{color_end}')
     except:
         error = soup.find('h1').text
-        print(f'--- {error}\n')
+        print(f'{color_red}Error - {error.strip()}{color_end}')
 
 
 def check_status_code(driver, url):
@@ -88,7 +89,7 @@ def proxy_generator():
 
     driver = webdriver.Chrome(service=srv, options=options)
     while True:
-        print('\n--- Getting proxy page\n')
+        print('Getting proxy page')
         driver.get("https://sslproxies.org/")  # Get a page with proxy ips
         proxy_page = driver.page_source
 
@@ -97,7 +98,7 @@ def proxy_generator():
             'table', attrs={'class': 'table table-striped table-bordered'})\
             .find('tbody')\
             .find_all('tr')  # Find element that has proxy ip and port
-        print('--- Proxy found\n')
+        print(f'{color_green}Proxy found{color_end}')
 
         proxies = []
         for element in table_body_elements:  # Extract ip and port and combine them
@@ -129,14 +130,14 @@ def get_product_main_page(driver, address):
     if IP is not blocked from page source find product name and link to comments section,
     then return product name and link
     '''
-    print('--- Getting product page\n')
+    print('Getting product page')
     driver.get(address)  # Get avito product page
     avito_page = driver.page_source
     avito_soup = BeautifulSoup(avito_page, 'html.parser')
 
     # Check if IP was blocked, if it is return false to try another proxy
     if avito_soup.title.text == 'Доступ ограничен: проблема с IP':
-        print('--- IP blocked\n\n')
+        print(f'{color_red}IP blocked{color_end}')
         return False
 
     product_name = avito_soup.find(
@@ -145,11 +146,11 @@ def get_product_main_page(driver, address):
         'a', attrs={'class': 'link-link-MbQDP link-design-default-_nSbv'})['href']  # Find the link to comments
 
     if product_name == None or comments_link == None:
-        print('--- Comments not found\n')
+        print(f'{color_red}Comments not found{color_end}')
         return False
 
     time.sleep(random.randint(2, 5))
-    print('--- Found comments page and slept, returning\n')
+    print(f'{color_green}Found comments page and slept, returning{color_end}')
     return {'name': product_name, 'link': comments_link}
 
 
@@ -160,7 +161,7 @@ def get_comments(driver, page_num, proxy_status, comments_link):
     '''
     base_url = 'https://www.avito.ru/'
     page_end_url = '&reviewsPage='
-    print('--- Getting page num', page_num, '\n')
+    print(f'Getting page num {page_num}')
 
     url = base_url + \
         comments_link + page_end_url + str(page_num)
@@ -174,8 +175,7 @@ def get_comments(driver, page_num, proxy_status, comments_link):
 
     # Check if IP was blocked, if it is return false to try another proxy
     if soup.title.text == 'Доступ ограничен: проблема с IP':
-        print(
-            '--- --- IP blocked, setting new proxy and restarting loop')
+        print(f'{color_red}IP blocked, selecting new proxy{color_end}')
         proxy_status = False
         return proxy_status
 
@@ -183,13 +183,13 @@ def get_comments(driver, page_num, proxy_status, comments_link):
     data = avito_scraper(soup=soup)
 
     if data == []:  # If data is empty then try again with a new proxy
-        print('\n--- --- Empty data, selecting another proxy\n')
+        print(f'{color_red}Empty data, selecting new proxy{color_end}')
         proxy_status = False
         return proxy_status
     if data is False:  # No more comments, stop the loop
         return True
 
-    print('--- OK, sleeping and going to the next page\n\n')
+    print(f'{color_green}OK, sleeping and going to the next page{color_end}')
     time.sleep(random.randint(2, 5))  # Sleep from 2 to 5 seconds
 
     return data

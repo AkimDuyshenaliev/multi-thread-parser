@@ -1,11 +1,7 @@
-from fastapi import APIRouter, Depends, Request
-# from database import get_db
-# from sqlalchemy.orm import Session
+from fastapi import APIRouter
 from .threads import ProxyParsing
-from app.utils.scrape import write_to_csv
 from app.utils.parse import proxy_generator
 from threading import Lock
-import time
 
 
 router = APIRouter(
