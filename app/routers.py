@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .threads import ProxyParsing
+from .threads import ParsingWithProxy
 from app.utils.parse import proxy_generator
 from threading import Lock
 
@@ -11,13 +11,13 @@ router = APIRouter(
 
 
 @router.post('/address', status_code=201)
-def get_avito_product_link(address):
+def get_avito_product_link(threads, address):
     main_file = 'app/static/stars_and_comments.csv'
 
     lock = Lock() # Initialize lock object
     proxies = proxy_generator()  # Get proxies
-    num_of_threads = 5
-    th = [ProxyParsing(
+    num_of_threads = int(threads)
+    th = [ParsingWithProxy(
         page_num=i, 
         step=num_of_threads, 
         address=address,

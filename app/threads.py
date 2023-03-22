@@ -12,7 +12,7 @@ from threading import Thread
 from app.utils.colors import color_end, color_green, color_red, color_yellow
 
 
-class ProxyParsing(Thread):
+class ParsingWithProxy(Thread):
     def __init__(self, page_num, step, address, main_file, proxies, lock):
         super().__init__()
         self.driver = webdriver.Chrome(service=srv, options=options)
@@ -35,14 +35,14 @@ class ProxyParsing(Thread):
                 with self.lock:
                     proxy = next(self.proxies)
                 driver.proxy = {'http':'http://%s:%s' % (proxy['ip'], proxy['port'])}
-                print(f'Selected proxy {driver.proxy}')
+                print(f'{color_yellow}Page: {page_num}\nSelected proxy {driver.proxy}{color_end}')
                 proxy_status = True
                
             try:
                 # check_ip(driver=driver)
-                if main_page is None:
+                if main_page is None: # If there is no product name and comments link then get them
                     main_page = get_product_main_page(driver=driver, address=self.address)
-                if main_page is False:
+                if main_page is False: # If an error occurred then try another proxy
                     proxy_status = False
                     continue
 
@@ -52,7 +52,7 @@ class ProxyParsing(Thread):
                     proxy_status=proxy_status,
                     comments_link=main_page['link'])
             except:
-                print(f'{color_red}Exception, choosing another proxy and trying again{color_end}')
+                print(f'{color_red}Exception on page {page_num}, choosing another proxy and trying again{color_end}')
                 proxy_status = False
                 continue
             
@@ -63,7 +63,7 @@ class ProxyParsing(Thread):
             if data is True:  # If parser returns True then there is no more comments
                 break
 
-            print(f'Data {data}')
+            print(f'Data for page {page_num} {data}')
             result = prepare_data(main_page['name'], self.address, data)
             page_num += self.step
 
