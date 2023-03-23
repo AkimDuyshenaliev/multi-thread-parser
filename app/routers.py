@@ -11,13 +11,13 @@ router = APIRouter(
 
 
 @router.post('/address', status_code=201)
-def get_avito_product_link(threads, address):
+def get_avito_product_link(address, threads=None):
     main_file = 'app/static/stars_and_comments.csv'
 
     lock = Lock() # Initialize lock object
     proxies = proxy_generator()  # Get proxies
     main_page = get_product_main_page(address=address)
-    num_of_threads = int(threads)
+    num_of_threads = int(threads) if threads else 5
     th = [ParsingWithProxy(
         main_page=main_page,
         page_num=i, 
