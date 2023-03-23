@@ -146,7 +146,7 @@ def get_product_main_page(driver, address):
         'a', attrs={'class': 'link-link-MbQDP link-design-default-_nSbv'})['href']  # Find the link to comments
 
     if product_name == None or comments_link == None:
-        print(f'{color_red}Comments not found{color_end}')
+        print(f'{color_red}Product name or comments not found{color_end}')
         return False
 
     time.sleep(random.randint(2, 5))
@@ -161,7 +161,7 @@ def get_comments(driver, page_num, proxy_status, comments_link):
     '''
     base_url = 'https://www.avito.ru/'
     page_end_url = '&reviewsPage='
-    print(f'Getting page num {page_num}')
+    print(f'{color_yellow}Getting page num {page_num}{color_end}')
 
     url = base_url + \
         comments_link + page_end_url + str(page_num)

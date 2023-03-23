@@ -26,7 +26,7 @@ class ParsingWithProxy(Thread):
     def run(self):
         driver = self.driver
         page_num = self.page_num
-        proxy_status = False
+        proxy_status = False # False - proxy need's to change, True - proxy is good
         main_page = None
         result = []
 
