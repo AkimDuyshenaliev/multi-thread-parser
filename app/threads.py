@@ -58,7 +58,6 @@ class ParsingWithProxy(Thread):
                 proxy_status = False
                 continue
             if data is True:  # If parser returns True then there is no more comments
-                driver.close()
                 break
 
             # print(f'Data for page {page_num} {data}')
