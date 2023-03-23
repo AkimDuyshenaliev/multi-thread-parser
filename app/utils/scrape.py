@@ -21,9 +21,7 @@ def avito_scraper(soup):
 
     # Check for errors, if list is empty then proxy needs to change
     if comments_body == []:
-        # print(f'{color_red}Comments not found, list is empty{color_end}')
         return []
-    # print(f'{color_green}Found comments{color_end}')
 
     stars_and_text = []
     search_string = re.compile('Дополнительно[:]?')
@@ -39,7 +37,6 @@ def avito_scraper(soup):
                 text=search_string).next_sibling.contents[0].contents[0].text
             re.sub('[^A-Za-z0-9]+', '', review_text)
             review_text = ' '.join(review_text.split('\n'))
-            # print(f'{color_green}Found "Дополнительно"{color_end}')
         except:
             continue
 
@@ -49,7 +46,6 @@ def avito_scraper(soup):
         stars_count = len(([1 for star in stars
                             if re.search('yellow', star.contents[0]['class'][1])]))
         stars_and_text.append([stars_count, review_text])
-        # print(f'{color_green}Parsed successfully, returning{color_end}')
     return stars_and_text
 
 

@@ -58,7 +58,6 @@ class ParsingWithProxy(Thread):
             if data is True:  # If parser returns True then there is no more comments
                 break
 
-            # print(f'Data for page {page_num} {data}')
             result += prepare_data(self.main_page['name'], self.address, data)
             page_num += self.step
 
