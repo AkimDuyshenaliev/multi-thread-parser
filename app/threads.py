@@ -1,6 +1,5 @@
 from seleniumwire import webdriver
 from app.utils.parse import (
-            get_product_main_page, 
             get_comments, 
             check_ip, 
             prepare_data,
@@ -53,7 +52,6 @@ class ParsingWithProxy(Thread):
                 proxy_status = False
                 continue
             
-
             if data is False:  # If parser returns False then select another parser and restart
                 proxy_status = False
                 continue
