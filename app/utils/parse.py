@@ -119,11 +119,10 @@ def prepare_data(product_name, address, data):
     # Append scraped data to 'result' list
     [result.append(tuple(element))
         for element in data]
-    result.append(data)
     return result
 
 
-def get_product_main_page(driver, address):
+def get_product_main_page(address):
     '''
     Use address and get the main page source,
     check if the IP is blocked, if yes then return empty list [],
@@ -131,6 +130,7 @@ def get_product_main_page(driver, address):
     then return product name and link
     '''
     print('Getting product page')
+    driver = webdriver.Chrome(service=srv, options=options)
     driver.get(address)  # Get avito product page
     avito_page = driver.page_source
     avito_soup = BeautifulSoup(avito_page, 'html.parser')
@@ -189,7 +189,7 @@ def get_comments(driver, page_num, proxy_status, comments_link):
     if data is False:  # No more comments, stop the loop
         return True
 
-    print(f'{color_green}OK, sleeping and going to the next page{color_end}')
+    print(f'{color_green}Page {page_num} - OK, sleeping and going to the next page{color_end}')
     time.sleep(random.randint(2, 5))  # Sleep from 2 to 5 seconds
 
     return data
