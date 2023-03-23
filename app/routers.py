@@ -16,9 +16,9 @@ def get_avito_product_link(addresses: list, threads: int | None = None):
 
     lock = Lock() # Initialize lock object
     proxies = proxy_generator()  # Get proxies
+    num_of_threads = int(threads) if threads else 5
     for address in addresses:
         main_page = get_product_main_page(address=address)
-        num_of_threads = int(threads) if threads else 5
         th = [ParsingWithProxy(
             main_page=main_page,
             page_num=i, 

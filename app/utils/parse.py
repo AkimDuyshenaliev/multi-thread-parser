@@ -161,7 +161,7 @@ def get_comments(driver, page_num, proxy_status, comments_link):
     '''
     base_url = 'https://www.avito.ru/'
     page_end_url = '&reviewsPage='
-    print(f'Getting page num {page_num}')
+    print(f'Getting page {page_num}')
 
     url = base_url + \
         comments_link + page_end_url + str(page_num)
