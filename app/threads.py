@@ -13,9 +13,10 @@ from app.utils.colors import color_end, color_green, color_red, color_yellow
 
 
 class ParsingWithProxy(Thread):
-    def __init__(self, page_num, step, address, main_file, proxies, lock):
+    def __init__(self, main_page, page_num, step, address, main_file, proxies, lock):
         super().__init__()
         self.driver = webdriver.Chrome(service=srv, options=options)
+        self.main_page = main_page
         self.page_num = page_num
         self.step = step
         self.address = address
@@ -27,7 +28,6 @@ class ParsingWithProxy(Thread):
         driver = self.driver
         page_num = self.page_num
         proxy_status = False # False - proxy need's to change, True - proxy is good
-        main_page = None
         result = []
 
         while True:
@@ -35,14 +35,11 @@ class ParsingWithProxy(Thread):
                 with self.lock:
                     proxy = next(self.proxies)
                 driver.proxy = {'http':'http://%s:%s' % (proxy['ip'], proxy['port'])}
-                print(f'{color_yellow}Page: {page_num}\nSelected proxy {driver.proxy}{color_end}')
+                print(f'{color_yellow}Page: {page_num}, selected proxy {driver.proxy}{color_end}')
                 proxy_status = True
                
             try:
-                # check_ip(driver=driver)
-                if main_page is None: # If there is no product name and comments link then get them
-                    main_page = get_product_main_page(driver=driver, address=self.address)
-                if main_page is False: # If an error occurred then try another proxy
+                if self.main_page is False: # If an error occurred then try another proxy
                     proxy_status = False
                     continue
 
@@ -50,7 +47,7 @@ class ParsingWithProxy(Thread):
                     driver=driver,
                     page_num=page_num,
                     proxy_status=proxy_status,
-                    comments_link=main_page['link'])
+                    comments_link=self.main_page['link'])
             except:
                 print(f'{color_red}Exception on page {page_num}, choosing another proxy and trying again{color_end}')
                 proxy_status = False
@@ -61,10 +58,11 @@ class ParsingWithProxy(Thread):
                 proxy_status = False
                 continue
             if data is True:  # If parser returns True then there is no more comments
+                driver.close()
                 break
 
-            print(f'Data for page {page_num} {data}')
-            result = prepare_data(main_page['name'], self.address, data)
+            # print(f'Data for page {page_num} {data}')
+            result += prepare_data(self.main_page['name'], self.address, data)
             page_num += self.step
 
         with self.lock:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from .threads import ParsingWithProxy
-from app.utils.parse import proxy_generator
+from app.utils.parse import get_product_main_page, proxy_generator
 from threading import Lock
 
 
@@ -16,8 +16,10 @@ def get_avito_product_link(threads, address):
 
     lock = Lock() # Initialize lock object
     proxies = proxy_generator()  # Get proxies
+    main_page = get_product_main_page(address=address)
     num_of_threads = int(threads)
     th = [ParsingWithProxy(
+        main_page=main_page,
         page_num=i, 
         step=num_of_threads, 
         address=address,
