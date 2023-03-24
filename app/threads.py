@@ -2,9 +2,7 @@ from seleniumwire import webdriver
 from app.utils.parse import (
             get_comments, 
             check_ip, 
-            prepare_data,
-            options,
-            srv)
+            prepare_data)
 from app.utils.scrape import write_to_csv
 from seleniumwire import webdriver
 from threading import Thread
@@ -14,7 +12,7 @@ from app.utils.colors import color_end, color_green, color_red, color_yellow
 class ParsingWithProxy(Thread):
     def __init__(self, main_page, page_num, step, address, main_file, proxies, lock):
         super().__init__()
-        self.driver = webdriver.Chrome(service=srv, options=options)
+        self.driver = webdriver.Chrome(service=self.srv, options=self.options)
         self.main_page = main_page
         self.page_num = page_num
         self.step = step
