@@ -1,3 +1,4 @@
+import time
 from fastapi import APIRouter
 from .threads import ParsingWithProxy
 from app.utils.parse import get_product_main_page, proxy_generator
@@ -30,6 +31,7 @@ def get_avito_product_link(addresses: list, threads: int | None = None):
 
         for proxy in th:
             proxy.start()
+            time.sleep(0.1)
 
         for proxy in th:
             proxy.join()
