@@ -1,3 +1,5 @@
+import gc
+
 from seleniumwire import webdriver
 from app.utils.parse import (
             get_comments, 
@@ -5,29 +7,39 @@ from app.utils.parse import (
             prepare_data)
 from app.utils.scrape import write_to_csv
 from seleniumwire import webdriver
-from threading import Thread
+from threading import Thread, current_thread
 from app.utils.colors import color_end, color_green, color_red, color_yellow
 
 
 class ParsingWithProxy(Thread):
-    def __init__(self, main_page, page_num, step, address, main_file, proxies, lock):
+    def __init__(self, srv, options, main_page, fileLocation, page_num, step, proxies, lock):
         super().__init__()
-        self.driver = webdriver.Chrome(service=self.srv, options=self.options)
+        self.driver = webdriver.Chrome(service=srv, options=options)
         self.main_page = main_page
+        self.fileLocation = fileLocation
         self.page_num = page_num
         self.step = step
-        self.address = address
-        self.main_file = main_file
         self.proxies = proxies
         self.lock = lock
 
     def run(self):
         driver = self.driver
         page_num = self.page_num
+        saved_pages = 0
         proxy_status = False # False - proxy need's to change, True - proxy is good
         result = []
 
         while True:
+            if saved_pages == 3:
+                with self.lock:
+                    write_to_csv(scraper_result=result, main_file=self.fileLocation)
+
+                print(f'{color_green}Saved pages on {current_thread().name} = {saved_pages}, dumping and clearing memory{color_end}')
+                del result # Mark for cleaning
+                gc.collect() # Clear memory
+                saved_pages = 0
+                result = []
+
             if proxy_status is False:
                 with self.lock:
                     proxy = next(self.proxies)
@@ -54,10 +66,14 @@ class ParsingWithProxy(Thread):
                 proxy_status = False
                 continue
             if data is True:  # If parser returns True then there is no more comments
+                with self.lock:
+                    write_to_csv(scraper_result=result, main_file=self.fileLocation)
+
+                print(f'{color_green}{current_thread().name} finished on page {page_num - self.step}{color_end}')
+                del result # Mark for cleaning
+                gc.collect() # Clear memory
                 break
 
-            result += prepare_data(self.main_page['name'], self.address, data)
+            saved_pages += 1
+            result += prepare_data(self.main_page['name'], self.main_page['link'], data)
             page_num += self.step
-
-        with self.lock:
-            write_to_csv(scraper_result=result, main_file=self.main_file)

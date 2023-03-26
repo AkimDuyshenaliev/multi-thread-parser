@@ -1,5 +1,6 @@
 import re
 import csv
+import time
 from bs4 import BeautifulSoup
 from app.utils.checkup import check_if_empty
 from app.utils.colors import color_end, color_green, color_red, color_yellow
@@ -54,6 +55,7 @@ def write_to_csv(scraper_result, main_file):
 
     with open(main_file, 'a', encoding='UTF8') as base_file:
         writer = csv.writer(base_file)  # Create a writer
+        time.sleep(1)
 
         if check_if_empty(main_file) is True:
             writer.writerow(header)  # Create the header
