@@ -1,3 +1,4 @@
+import os
 import time
 from fastapi import APIRouter
 from .threads import ParsingWithProxy
@@ -14,11 +15,11 @@ router = APIRouter(
 @router.post('/address', status_code=201)
 def get_avito_product_link(addresses: list, threads: int | None = None):
     fileLocation = 'app/static/stars_and_comments.csv'
-    # main_page = [get_product_main_page(address=address) for address in addresses]
     
     lock = Lock() # Initialize lock object
     proxies = proxy_generator()  # Get proxies
     num_of_threads = threads if threads else 5
+    os.mkdir('app/static/temp') # Create a temporary directory
 
     for address in addresses:
         main_page = get_product_main_page(address=address)
@@ -38,3 +39,5 @@ def get_avito_product_link(addresses: list, threads: int | None = None):
 
         for proxy in th:
             proxy.join()
+
+    os.rmdir('app/static/temp') # Delete temporary directory

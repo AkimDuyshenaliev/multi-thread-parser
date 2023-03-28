@@ -1,4 +1,6 @@
+import os
 import gc
+import csv
 
 from seleniumwire import webdriver
 from app.utils.parse import (
@@ -25,55 +27,52 @@ class ParsingWithProxy(Thread):
     def run(self):
         driver = self.driver
         page_num = self.page_num
-        saved_pages = 0
         proxy_status = False # False - proxy need's to change, True - proxy is good
-        result = []
+        temp_file_path = f'app/static/temp/Temp-{current_thread().name}.csv' 
 
-        while True:
-            if saved_pages == 3:
-                with self.lock:
-                    write_to_csv(scraper_result=result, main_file=self.fileLocation)
+        with open(temp_file_path, 'w', encoding='UTF8') as tempFile:
+            writer = csv.writer(tempFile)  # Create a writer
 
-                print(f'{color_green}Saved pages on {current_thread().name} = {saved_pages}, dumping and clearing memory{color_end}')
-                del result # Mark for cleaning
-                gc.collect() # Clear memory
-                saved_pages = 0
-                result = []
+            while True:
+                if proxy_status is False:
+                    with self.lock:
+                        proxy = next(self.proxies)
+                    driver.proxy = {'http':'http://%s:%s' % (proxy['ip'], proxy['port'])}
+                    print(f'{color_yellow}Page: {page_num}, selected proxy {driver.proxy}{color_end}')
+                    proxy_status = True
+                
+                try:
+                    if self.main_page is False: # If an error occurred then try another proxy
+                        proxy_status = False
+                        continue
 
-            if proxy_status is False:
-                with self.lock:
-                    proxy = next(self.proxies)
-                driver.proxy = {'http':'http://%s:%s' % (proxy['ip'], proxy['port'])}
-                print(f'{color_yellow}Page: {page_num}, selected proxy {driver.proxy}{color_end}')
-                proxy_status = True
-               
-            try:
-                if self.main_page is False: # If an error occurred then try another proxy
+                    data = get_comments(
+                        driver=driver,
+                        page_num=page_num,
+                        proxy_status=proxy_status,
+                        comments_link=self.main_page['link'])
+                except:
+                    print(f'{color_red}Exception on page {page_num}, choosing another proxy and trying again{color_end}')
                     proxy_status = False
                     continue
+                
+                if data is False:  # If parser returns False then select another parser and restart
+                    proxy_status = False
+                    continue
+                if data is True:  # If parser returns True then there is no more comments
+                    del result # Mark for cleaning
+                    gc.collect() # Clear memory
+                    break
 
-                data = get_comments(
-                    driver=driver,
-                    page_num=page_num,
-                    proxy_status=proxy_status,
-                    comments_link=self.main_page['link'])
-            except:
-                print(f'{color_red}Exception on page {page_num}, choosing another proxy and trying again{color_end}')
-                proxy_status = False
-                continue
-            
-            if data is False:  # If parser returns False then select another parser and restart
-                proxy_status = False
-                continue
-            if data is True:  # If parser returns True then there is no more comments
-                with self.lock:
-                    write_to_csv(scraper_result=result, main_file=self.fileLocation)
+                result = prepare_data(self.main_page['name'], self.main_page['link'], data)
+                writer.writerow(result) # Write data into the temp file
+                print(f'{color_yellow}{page_num} written into the temp file{color_end}')
+                page_num += self.step
 
-                print(f'{color_green}{current_thread().name} finished on page {page_num - self.step}{color_end}')
-                del result # Mark for cleaning
-                gc.collect() # Clear memory
-                break
+        with self.lock:
+            write_to_csv(main_file=self.fileLocation, temp_file=temp_file_path)
+        print(f'{color_green}{current_thread().name} finished on page {page_num - self.step}{color_end}')
 
-            saved_pages += 1
-            result += prepare_data(self.main_page['name'], self.main_page['link'], data)
-            page_num += self.step
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+            print(f'{color_green}{current_thread().name} temp file cleared{color_end}')

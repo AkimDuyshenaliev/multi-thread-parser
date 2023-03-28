@@ -50,7 +50,7 @@ def avito_scraper(soup):
     return stars_and_text
 
 
-def write_to_csv(scraper_result, main_file):
+def write_to_csv(main_file, temp_file):
     header = ['product', 'stars', 'comment', 'productlink']
 
     with open(main_file, 'a', encoding='UTF8') as base_file:
@@ -59,4 +59,6 @@ def write_to_csv(scraper_result, main_file):
 
         if check_if_empty(main_file) is True:
             writer.writerow(header)  # Create the header
-        writer.writerows(scraper_result)  # Write data
+        with open(temp_file, 'r') as tempFile: # Open temp file
+            openedTempFile = csv.reader(tempFile)
+            writer.writerows(openedTempFile)  # Write data from temp into main
