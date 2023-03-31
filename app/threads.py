@@ -68,6 +68,8 @@ class ParsingWithProxy(Thread):
                 writer.writerow(result) # Write data into the temp file
                 print(f'{color_yellow}{page_num} written into the temp file{color_end}')
                 page_num += self.step
+                tempFile.flush() # Flush the internal buffer
+                os.fsync(tempFile.fileno()) # Sync internal buffer and file, and force data to be written to hard drive
 
         with self.lock:
             write_to_csv(main_file=self.fileLocation, temp_file=temp_file_path)
