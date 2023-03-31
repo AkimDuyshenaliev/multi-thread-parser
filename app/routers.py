@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.post('/address', status_code=201)
+@router.post('/avito-product', status_code=201)
 def get_avito_product_link(addresses: list, threads: int | None = None):
     fileLocation = 'app/static/stars_and_comments.csv'
     
@@ -20,6 +20,37 @@ def get_avito_product_link(addresses: list, threads: int | None = None):
     proxies = proxy_generator()  # Get proxies
     num_of_threads = threads if threads else 5
     os.mkdir('app/static/temp') # Create a temporary directory
+
+    for address in addresses:
+        main_page = get_product_main_page(address=address)
+        th = [ParsingWithProxy(
+            srv=srv,
+            options=options,
+            main_page=main_page,
+            fileLocation=fileLocation,
+            page_num=i, 
+            step=num_of_threads, 
+            proxies=proxies,
+            lock=lock) for i in range(1, num_of_threads+1)]
+
+        for proxy in th:
+            proxy.start()
+            time.sleep(1)
+
+        for proxy in th:
+            proxy.join()
+
+    os.rmdir('app/static/temp') # Delete temporary directory
+
+
+@router.post('/russian-dictionary', status_code=201)
+def get_russian_frequency_dict(addresses: list, threads: int | None = None):
+    fileLocation = 'app/static/russian-frequency_dict.csv'
+
+    lock = Lock()
+    proxies = proxy_generator()
+    num_of_threads = threads if threads else 5
+    os.mkdir('app/static/temp')
 
     for address in addresses:
         main_page = get_product_main_page(address=address)
