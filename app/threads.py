@@ -30,8 +30,8 @@ class ParsingWithProxy(Thread):
         proxy_status = False # False - proxy need's to change, True - proxy is good
         temp_file_path = f'app/static/temp/Temp-{current_thread().name}.csv' 
 
-        writer = csv.writer(tempFile)  # Create a writer
         with open(temp_file_path, 'w', encoding='UTF8') as tempFile:
+            writer = csv.writer(tempFile)  # Create a writer
 
             while True:
                 if proxy_status is False:
