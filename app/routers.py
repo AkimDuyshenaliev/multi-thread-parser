@@ -1,6 +1,7 @@
 import os
 import time
 from fastapi import APIRouter
+from starlette.responses import FileResponse
 from .threads import ParsingWithProxy
 from app.utils.parse import get_product_main_page, proxy_generator, srv, options
 from threading import Lock
@@ -41,3 +42,4 @@ def get_avito_product_link(addresses: list, threads: int | None = None):
             proxy.join()
 
     os.rmdir('app/static/temp') # Delete temporary directory
+    return FileResponse("app/static/stars_and_comments.csv")
