@@ -41,5 +41,5 @@ def get_avito_product_link(addresses: list, threads: int | None = None):
         for proxy in th:
             proxy.join()
 
-    return FileResponse("app/static/stars_and_comments.csv")
     os.rmdir('app/static/temp') # Delete temporary directory
+    return FileResponse("app/static/stars_and_comments.csv")
