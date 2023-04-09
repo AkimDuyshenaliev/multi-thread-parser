@@ -22,26 +22,24 @@ def get_avito_product_link(addresses: list, threads: int | None = None):
     num_of_threads = threads if threads else 5
     os.mkdir('app/static/temp') # Create a temporary directory
 
-    try:
-        for address in addresses:
-            main_page = get_product_main_page(address=address)
-            th = [ParsingWithProxy(
-                srv=srv,
-                options=options,
-                main_page=main_page,
-                fileLocation=fileLocation,
-                page_num=i, 
-                step=num_of_threads, 
-                proxies=proxies,
-                lock=lock) for i in range(1, num_of_threads+1)]
+    for address in addresses:
+        main_page = get_product_main_page(address=address, proxies=proxies)
+        th = [ParsingWithProxy(
+            srv=srv,
+            options=options,
+            main_page=main_page,
+            fileLocation=fileLocation,
+            page_num=i, 
+            step=num_of_threads, 
+            proxies=proxies,
+            lock=lock) for i in range(1, num_of_threads+1)]
 
-            for proxy in th:
-                proxy.start()
-                time.sleep(1)
+        for proxy in th:
+            proxy.start()
+            time.sleep(1)
 
-            for proxy in th:
-                proxy.join()
+        for proxy in th:
+            proxy.join()
 
-        return FileResponse("app/static/stars_and_comments.csv")
-    finally:
-        os.rmdir('app/static/temp') # Delete temporary directory
+    return FileResponse("app/static/stars_and_comments.csv")
+    os.rmdir('app/static/temp') # Delete temporary directory
