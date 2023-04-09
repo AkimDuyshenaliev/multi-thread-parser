@@ -18,7 +18,7 @@ def avito_scraper(soup):
     # Find all "div" of the comment body with class name
     comments_body = soup.find_all(
         'div',
-        attrs={'class': 'ReviewModelSnippet-root-kb0P5 sizes-author-avatar-sizes-oVHTX'})
+        attrs={'class': 'ModelReviewsList-root-GzKMx'})
 
     # Check for errors, if list is empty then proxy needs to change
     if comments_body == []:

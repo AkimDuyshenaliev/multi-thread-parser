@@ -122,36 +122,54 @@ def prepare_data(product_name, address, data):
     return result
 
 
-def get_product_main_page(address):
+def get_product_main_page(address, proxies):
     '''
     Use address and get the main page source,
     check if the IP is blocked, if yes then return empty list [],
     if IP is not blocked from page source find product name and link to comments section,
     then return product name and link
     '''
-    print('Getting product page')
+    proxy_status = False
     driver = webdriver.Chrome(service=srv, options=options)
-    driver.get(address)  # Get avito product page
-    avito_page = driver.page_source
-    avito_soup = BeautifulSoup(avito_page, 'html.parser')
 
-    # Check if IP was blocked, if it is return false to try another proxy
-    if avito_soup.title.text == 'Доступ ограничен: проблема с IP':
-        print(f'{color_red}IP blocked{color_end}')
-        return False
+    while True:
+        ### Selecting proxy
+        if proxy_status is False:
+            proxy = next(proxies)
+            driver.proxy = {'http':'http://%s:%s' % (proxy['ip'], proxy['port'])}
+            print(f'{color_yellow}Selected proxy {driver.proxy}{color_end}')
+            proxy_status = True
 
-    product_name = avito_soup.find(
-        'span', attrs={'class': 'title-info-title-text'}).text  # Find product name
-    comments_link = avito_soup.find(
-        'a', attrs={'class': 'link-link-MbQDP link-design-default-_nSbv'})['href']  # Find the link to comments
+        try:
+            print('Getting product page')
+            driver.get(address)  # Get avito product page
+            avito_page = driver.page_source
+            avito_soup = BeautifulSoup(avito_page, 'html.parser')
 
-    if product_name == None or comments_link == None:
-        print(f'{color_red}Product name or comments not found{color_end}')
-        return False
+            # Check if IP was blocked, if it is return false to try another proxy
+            if avito_soup.title.text == 'Доступ ограничен: проблема с IP':
+                print(f'{color_red}IP blocked{color_end}')
+                # return False
+                proxy_status = False
+                continue
 
-    time.sleep(random.randint(2, 5))
-    print(f'{color_green}Found comments page and slept, returning{color_end}')
-    return {'name': product_name, 'link': comments_link}
+            product_name = avito_soup.find(
+                'span', attrs={'class': 'title-info-title-text'}).text  # Find product name
+            comments_link = avito_soup.find(
+                'a', attrs={'class': 'styles-module-root-_uNWU styles-module-root_noVisited-jAlBU'})['href']  # Find the link to comments
+
+            if product_name == None or comments_link == None:
+                print(f'{color_red}Product name or comments not found{color_end}')
+                # return False
+                proxy_status = False
+                continue
+
+            time.sleep(random.randint(2, 5))
+            print(f'{color_green}Found comments page and slept, returning{color_end}')
+            return {'name': product_name, 'link': comments_link}
+        except:
+            print(f'{color_red}Exception, selecting another proxy{color_end}')
+            proxy_status = False
 
 
 def get_comments(driver, page_num, proxy_status, comments_link):
